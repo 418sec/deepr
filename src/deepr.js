@@ -31,6 +31,8 @@ const mergeArray = (prev, next, clone) => {
 const mergeObject = (prev, next, clone) => {
   const state = clone ? Object.assign({}, prev) : prev;
   Object.keys(next).forEach(key => {
+    if (isPrototypePolluted(key))
+      return
     const val = next[key];
     const type = utils.getType(val);
     switch (type) {
@@ -91,9 +93,9 @@ const merge = (prev, next, clone = false) => {
   switch (type) {
     case ARRAY:
       return mergeArray(prev, next, clone);
-    case OBJECT:
-      return mergeObject(prev, next, clone);
-    default:
+      case OBJECT:
+        return mergeObject(prev, next, clone);
+        default:
       return mergePrimative(prev, next);
   }
 }
@@ -103,5 +105,7 @@ const validate = (change, policy) => {
   validateObject(change, policy, errors);
   return { valid: errors.length === 0, errors }
 };
+
+const isPrototypePolluted = (key) => ['__proto__', 'constructor', 'prototype'].includes(key)
 
 module.exports = { merge, validate };
